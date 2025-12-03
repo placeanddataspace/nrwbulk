@@ -1,0 +1,30 @@
+Package: ldbnrwApi
+Type: Package
+Title: Zugriff auf die GENESIS-Webservice-API der Landesdatenbank NRW
+Version: 0.1.0
+Authors@R: c(
+    person(
+        given = "placeanddataspace",
+        role = c("aut", "cre"),
+        email = "PLACEHOLDER@example.com",
+        comment = c(ORCID = "https://github.com/placeanddataspace")))
+Description: Tools zum Zugriff auf die GENESIS-Webservice-API der Landesdatenbank
+    Nordrhein-Westfalen (IT.NRW). Enthalten sind Funktionen für Katalogabfragen
+    (Statistiken, Tabellen), Suchanfragen, das Abrufen von Metadaten, Variablen
+    sowie den Download einzelner Tabellen oder kompletter Statistikfamilien.
+    Unterstützt sowohl 'free' als auch authentifizierte API-Bereiche.
+License: MIT + file LICENSE
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.3.3
+Imports:
+    httr,
+    readr,
+    progress,
+    future.apply
+Suggests:
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
+URL: https://github.com/placeanddataspace/ldbnrwApi
+BugReports: https://github.com/placeanddataspace/ldbnrwApi/issues
