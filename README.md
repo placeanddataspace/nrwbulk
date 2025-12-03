@@ -1,153 +1,131 @@
-ldbnrwApi
+# nrwbulk
 
-R-Client für die Landesdatenbank NRW (GENESIS-Webservice 2020)
-Mit diesem Paket kannst du Kataloge, Tabellen, Metadaten, Klassifikationen und ganze Statistik-Familien aus der Landesdatenbank NRW automatisiert abrufen.
+Werkzeug für den Massendownload von Tabellen, Metadaten und gesamten
+Statistikfamilien aus der Landesdatenbank NRW (GENESIS-Webservice 2020).
 
-Die API ist kompatibel mit:
+Das Paket richtet sich an Anwenderinnen und Anwender, die regelmäßig große
+Datenmengen aus der Landesdatenbank benötigen – z. B. für Forschung,
+Berichterstattung, Monitoring, Planung oder automatisierte Datenpipelines.
+`nrwbulk` automatisiert wiederkehrende Abrufe und erleichtert es, ganze
+Themenbereiche oder vollständige Tabellenstrukturen in einem Arbeitsschritt
+herunterzuladen und ohne Umlautfehler in R zu überführen.
 
-GENESIS-Webservice 2020 (neues Format)
+---
 
-authentifizierten & freien Bereichen
+## Inhalt
 
-großen Tabellen (inkl. automatischem Chunking)
+- [Funktionen des Pakets](#funktionen-des-pakets)
+- [Installation](#installation)
+- [Zugangsdaten einrichten](#zugangsdaten-einrichten)
+- [Grundlegende Nutzung](#grundlegende-nutzung)
+- [Beispiele](#beispiele)
+  - [1. Verfügbare Statistiken abrufen](#1-verfügbare-statistiken-abrufen)
+  - [2. Tabellenübersicht laden](#2-tabellenübersicht-laden)
+  - [3. Metadaten zu einer Tabelle](#3-metadaten-zu-einer-tabelle)
+  - [4. Eine komplette Statistikfamilie herunterladen](#4-eine-komplette-statistikfamilie-herunterladen)
+- [Hinweise und Grenzen der API](#hinweise-und-grenzen-der-api)
+- [Lizenz](#lizenz)
 
-parallelem Download (optional)
+---
 
-🚀 Installation
-# Von lokalem Paket-Ordner installieren
-devtools::install()
+## Funktionen des Pakets
 
+`nrwbulk` stellt mehrere Kernfunktionen bereit:
 
-Oder falls du das Paket später auf GitHub veröffentlichst:
+### ✔ Tabellen- und Statistikübersichten laden
+- `ld_list_statistics()` – Liste aller verfügbaren Statistikbereiche  
+- `ld_list_tables()` – Liste aller Tabellencodes und Titel
 
-devtools::install_github("placeanddataspace/ldbnrwApi")
+### ✔ Metadaten einsehen
+- `ld_get_metadata()` – Struktur und Beschreibung einer Tabelle  
+- `ld_get_variables()` – Variablen und Klassifikationen (falls vorhanden)
 
-🔐 Login / Zugangsdaten
+### ✔ Daten herunterladen
+- `ld_post_tablefile()` – Tabelle als Datei (flat CSV) herunterladen  
+- `ld_family_download()` – gesamte Statistikfamilie in einem Schritt herunterladen
 
-Für personalisierte Tabellen brauchst du einen Account bei IT.NRW.
+Der Schwerpunkt des Pakets liegt auf **Massendownloads**, die das Web-Interface
+der Landesdatenbank nicht effizient unterstützt.
 
-Empfohlen: Zugangsdaten in ~/.Renviron
+---
 
-LD_USERNAME=DEIN_NAME
-LD_PASSWORD=DEIN_PASSWORT
+## Installation
 
+```r
+# Installation von GitHub (devtools erforderlich)
+install.packages("devtools")
+devtools::install_github("placeanddataspace/nrwbulk")
 
-R neu starten – danach funktionieren alle Funktionen ohne Angabe von User/Passwort.
+Zugangsdaten einrichten
 
-Testen:
+Für den Zugriff auf viele Tabellen ist ein Benutzerkonto der Landesdatenbank NRW notwendig.
+Benutzername und Passwort müssen hinterlegt sein, damit nrwbulk Daten abrufen kann.
 
-Sys.getenv("LD_USERNAME")
-Sys.getenv("LD_PASSWORD")
+Am einfachsten geschieht dies über die Datei .Renviron, die im Projekt- oder Home-Verzeichnis
+erstellt werden kann:
 
-📦 Grundfunktionen
-🎯 Gesamten Statistik-Katalog abrufen
-library(ldbnrwApi)
+LD_USERNAME=username
+LD_PASSWORD=password
+
+Danach R neu starten.
+
+Falls keine Zugangsdaten gesetzt sind, verwendet das Paket automatisch:
+
+    Benutzer: GAST
+
+    Passwort: GAST
+
+Grundlegende Nutzung
+
+Nach der Installation:
+
+library(nrwbulk)
+
+Beispiele
+1. Verfügbare Statistiken abrufen
 
 stats <- ld_list_statistics()
 head(stats)
 
+Lieferung: Statistik-Code + Beschreibung.
+2. Tabellenübersicht laden
 
-Gibt eine Liste aller verfügbaren Statistiken (EVAS-Codes).
-
-📄 Alle Tabellen abrufen
 tabs <- ld_list_tables()
 head(tabs)
 
+Ergebnis: Tabellencode, Titel, Zeitraum.
+3. Metadaten zu einer Tabelle
 
-Gibt Tabellencode, Beschreibung und Zeitraum zurück.
-
-🔍 Tabellen suchen
-ld_search("Pflege")
-ld_search("Bevölkerung", fields = "content")
-
-📑 Metadaten & Variablen
-🔎 Metadaten zu einer Tabelle
 meta <- ld_get_metadata("22411-01i")
-str(meta, max.level = 2)
+meta$Object$Content     # Titel
+meta$Object$Time        # Zeiträume
 
+4. Eine komplette Statistikfamilie herunterladen
 
-Liefert:
+Damit lassen sich alle Tabellen eines Bereichs („Familie“) automatisiert herunterladen.
+Dies ist eine zentrale Funktion des Pakets.
 
-Beschreibung
+ld_family_download("224", parallel = FALSE)
 
-Zeitraum
+Das Ergebnis sind mehrere .csv- oder .ffc-Dateien im Unterordner:
 
-Dimensionen
+downloads/224/
 
-Struktur der Tabelle
+Optional parallel:
 
-Klassifikationen (falls vorhanden)
+ld_family_download("224", parallel = TRUE)
 
-📊 Klassifikationen / Variablen einer Tabelle
+Hinweise und Grenzen der API
 
-Falls vorhanden:
+    Der GENESIS-Webservice ermöglicht pro Anfrage nur eine einzelne Tabelle.
+    nrwbulk automatisiert deren Zusammenstellung.
 
-vars <- ld_get_variables("23111-02i")
-names(vars)
-vars[[1]]$values
+    Nicht alle Tabellen enthalten Klassifikationen.
+    In diesem Fall liefert ld_get_variables() NULL.
 
+    Zeiträume und verfügbare Merkmale variieren je nach Tabelle und Datenstand.
 
-Falls nicht vorhanden (z. B. reine Zeitreihen):
+Lizenz
 
-ℹ️ Tabelle 12411-01i hat keine Klassifikationen (nur Werte?).
-
-📥 Tabellendaten abrufen
-Einfache Tabelle laden
-df <- ld_post_tablefile("22411-01i")
-head(df)
-
-
-Die Funktion:
-
-lädt die Tabelle
-
-wandelt sie ins lange Format
-
-toleriert große Tabellen
-
-nutzt automatisch User/Passwort aus .Renviron
-
-👨‍👩‍👧 Familienfunktionen (EVAS-Codes)
-
-Viele Statistiken bestehen aus mehreren Teil-Tabellen
-(z. B. 22411, 22412, 22421 → Pflege).
-
-🔎 Tabellen einer Statistik-Familie abrufen
-fam_tabs <- ld_family("224")
-head(fam_tabs)
-
-📥 Ganze Statistik-Familie herunterladen
-all <- ld_family_download("224", parallel = FALSE)
-
-
-Mit Parallelverarbeitung:
-
-all <- ld_family_download("224", parallel = TRUE)
-
-⚙️ Einstellungen & Debugging
-Roh-API-Antwort anzeigen
-ld_raw("22411-01i")
-
-Nur Struktur anzeigen
-ld_str("22411-01i")
-
-Netzwerkfehler sehen
-options(ldbnrwApi.verbose = TRUE)
-
-🗂 Paketübersicht
-Funktion	Beschreibung
-ld_list_statistics()	Katalog der Statistiken
-ld_list_tables()	Alle verfügbaren Tabellen
-ld_search()	Volltextsuche
-ld_get_metadata()	Metadaten einer Tabelle
-ld_get_variables()	Klassifikationen (falls vorhanden)
-ld_post_tablefile()	Daten abrufen
-ld_family()	Tabellen einer Statistikfamilie
-ld_family_download()	Alle Tabellen einer Familie laden
-📝 Lizenz
-
-Daten:
-© IT.NRW — Datenlizenz Deutschland, Namensnennung 2.0
-
-Paket:
-MIT-Lizenz (siehe LICENSE.md)
+Dieses Projekt steht unter der MIT-Lizenz.
+Daten: © IT.NRW, jeweils mit den in den Metadaten angegebenen Lizenzbedingungen.
